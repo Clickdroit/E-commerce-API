@@ -18,7 +18,7 @@ services:
       - "80:80"
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
-      - /var/www/portail:/usr/share/nginx/portail:ro
+      - /home/site-portail:/usr/share/nginx/portail:ro
     depends_on:
       - api
   postgres:
