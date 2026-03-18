@@ -7,6 +7,7 @@ const { errorHandler, notFoundHandler } = require('./middleware/errorHandler');
 const { generalLimiter } = require('./middleware/rateLimiter');
 
 const app = express();
+app.set('trust proxy', 1);
 
 // Security headers (manual, without helmet)
 app.use((req, res, next) => {
