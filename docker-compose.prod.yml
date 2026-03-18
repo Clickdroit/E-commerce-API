@@ -60,7 +60,23 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+  site-portail:
+    build:
+      context: ../site-portail
+      dockerfile: Dockerfile
+    container_name: site_portail
+    restart: unless-stopped
+    ports:
+      - "3002:3002"
+    environment:
+      - PORT=3002
+      - JWT_SECRET=P4zHnvBUA4RB3vx3dOXVFUvCRYtelcQunF9n9kTjKgS
+      - ADMIN_USER=admin
+      - ADMIN_PASS=admin
+    volumes:
+      - portail_data:/app/server
 
 volumes:
   postgres_data:
   redis_data:
+  portail_data:
