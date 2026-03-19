@@ -21,6 +21,7 @@ services:
       - /home/site-portail:/usr/share/nginx/portail:ro
     depends_on:
       - api
+      - productive-frontend
   postgres:
     image: postgres:15-alpine
     container_name: ecommerce_postgres
@@ -31,7 +32,8 @@ services:
       POSTGRES_DB: ecommerce
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./db/schema.sql:/docker-entrypoint-initdb.d/schema.sql
+      - ./db/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
+      - ./db/productive-init.sql:/docker-entrypoint-initdb.d/02-productive.sql
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER}" ]
       interval: 5s
@@ -76,7 +78,35 @@ services:
     volumes:
       - portail_data:/app/server
 
+  # ── Productive Dashboard ─────────────────────────────────────
+  productive-backend:
+    build:
+      context: ../productive/backend
+      dockerfile: Dockerfile
+    container_name: productive_backend
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/productive?schema=public
+      JWT_SECRET: ${PRODUCTIVE_JWT_SECRET:-productive-jwt-secret-change-me}
+      PORT: 3003
+    command: >
+      sh -c "npx prisma db push --skip-generate && node src/index.js"
+
+  productive-frontend:
+    build:
+      context: ../productive/frontend
+      dockerfile: Dockerfile
+    container_name: productive_frontend
+    restart: unless-stopped
+    depends_on:
+      - productive-backend
+
 volumes:
   postgres_data:
   redis_data:
   portail_data:
+
+
